@@ -1,27 +1,27 @@
 #include "MainScene.h"
+#include "Const.h"
+#include "Chapter01/Chapter01Scene.h"
 
 USING_NS_CC;
 
+enum {
+    TAG_CHAPTER01,
+    TAG_CHAPTER02,
+};
+
 Scene* MainScene::createScene()
 {
-    // 'scene' is an autorelease object
     auto scene = Scene::create();
     
-    // 'layer' is an autorelease object
     auto layer = MainScene::create();
-
-    // add layer as a child to scene
+    
     scene->addChild(layer);
-
-    // return the scene
+    
     return scene;
 }
 
-// on "init" you need to initialize your instance
 bool MainScene::init()
 {
-    //////////////////////////////
-    // 1. super init first
     if ( !Layer::init() )
     {
         return false;
@@ -30,47 +30,39 @@ bool MainScene::init()
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-    /////////////////////////////
-    // 2. add a menu item with "X" image, which is clicked to quit the program
-    //    you may modify it.
-
-    // add a "close" icon to exit the progress. it's an autorelease object
-    auto closeItem = MenuItemImage::create(
-                                           "CloseNormal.png",
-                                           "CloseSelected.png",
-                                           CC_CALLBACK_1(MainScene::menuCloseCallback, this));
+    // Chapter
+    {
+        // Chapter01
+        auto chapter01Label = Label::createWithTTF("Chapter01", SYSTEM_FONT, FONT_SIZE);
+        auto chapter01Item = MenuItemLabel::create(chapter01Label, CC_CALLBACK_1(MainScene::menuCallback, this));
+        chapter01Item->setTag(TAG_CHAPTER01);
+        
+        // Chapter02
+        auto chapter02Label = Label::createWithTTF("Chapter02", SYSTEM_FONT, FONT_SIZE);
+        auto chapter02Item = MenuItemLabel::create(chapter02Label, CC_CALLBACK_1(MainScene::menuCallback, this));
+        chapter02Item->setTag(TAG_CHAPTER02);
+        
+        // Menu
+        auto menu = Menu::create(chapter01Item, chapter02Item, nullptr);
+        menu->setPosition(visibleSize.width/2, visibleSize.height/2);
+        menu->alignItemsVertically();
+        this->addChild(menu);
+    }
     
-	closeItem->setPosition(Vec2(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
-                                origin.y + closeItem->getContentSize().height/2));
-
-    // create menu, it's an autorelease object
-    auto menu = Menu::create(closeItem, NULL);
-    menu->setPosition(Vec2::ZERO);
-    this->addChild(menu, 1);
-
-    /////////////////////////////
-    // 3. add your codes below...
-
-    // add a label shows "Hello World"
-    // create and initialize a label
-    
-    auto label = Label::createWithTTF("Hello World", "fonts/Marker Felt.ttf", 24);
-    
-    // position the label on the center of the screen
-    label->setPosition(Vec2(origin.x + visibleSize.width/2,
-                            origin.y + visibleSize.height - label->getContentSize().height));
-
-    // add the label as a child to this layer
-    this->addChild(label, 1);
-
-    // add "MainScene" splash screen"
-    auto sprite = Sprite::create("HelloWorld.png");
-
-    // position the sprite on the center of the screen
-    sprite->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-
-    // add the sprite as a child to this layer
-    this->addChild(sprite, 0);
+    // Close
+    {
+        auto closeItem = MenuItemImage::create(
+                                               "CloseNormal.png",
+                                               "CloseSelected.png",
+                                               CC_CALLBACK_1(MainScene::menuCloseCallback, this));
+        
+        closeItem->setPosition(Vec2(origin.x + visibleSize.width - closeItem->getContentSize().width/2 ,
+                                    origin.y + closeItem->getContentSize().height/2));
+        
+        auto menu = Menu::create(closeItem, nullptr);
+        menu->setPosition(Vec2::ZERO);
+        this->addChild(menu);
+    }
     
     return true;
 }
@@ -79,13 +71,31 @@ bool MainScene::init()
 void MainScene::menuCloseCallback(Ref* pSender)
 {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
-	MessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
+    MessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
     return;
 #endif
-
+    
     Director::getInstance()->end();
-
+    
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     exit(0);
 #endif
+}
+
+void MainScene::menuCallback(Ref* pSender)
+{
+    auto menu = (MenuItem*)pSender;
+    int id = menu->getTag();
+    log("Menu : id[%d]", id);
+    
+    switch (id) {
+        case TAG_CHAPTER01:
+            log("chapter01");
+            Director::getInstance()->replaceScene(TransitionFade::create(1.0f, Chapter01Scene::createScene(), Color3B::WHITE));            break;
+        case TAG_CHAPTER02:
+            log("chapter02");
+            break;
+        default:
+            break;
+    }
 }
