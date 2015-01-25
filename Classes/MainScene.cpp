@@ -1,6 +1,7 @@
 #include "MainScene.h"
 #include "Const.h"
 #include "Chapter01/Chapter01Scene.h"
+#include "Ant/AntScene.h"
 
 USING_NS_CC;
 
@@ -38,7 +39,7 @@ bool MainScene::init()
         chapter01Item->setTag(TAG_CHAPTER01);
         
         // Chapter02
-        auto chapter02Label = Label::createWithTTF("Chapter02", SYSTEM_FONT, FONT_SIZE);
+        auto chapter02Label = Label::createWithTTF("Ant", SYSTEM_FONT, FONT_SIZE);
         auto chapter02Item = MenuItemLabel::create(chapter02Label, CC_CALLBACK_1(MainScene::menuCallback, this));
         chapter02Item->setTag(TAG_CHAPTER02);
         
@@ -94,7 +95,7 @@ void MainScene::menuCallback(Ref* pSender)
             Director::getInstance()->replaceScene(TransitionFade::create(1.0f, Chapter01Scene::createScene(), Color3B::WHITE));            break;
         case TAG_CHAPTER02:
             log("chapter02");
-            break;
+            Director::getInstance()->replaceScene(TransitionFade::create(1.0f, AntScene::createScene(), Color3B::WHITE));            break;
         default:
             break;
     }
