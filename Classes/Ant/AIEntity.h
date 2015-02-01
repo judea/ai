@@ -23,7 +23,7 @@ public:
     ~AIEntity();
     
     void Forage(int (*terrain)[MAX_COLS]);
-    void GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList);
+    void GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList[]);
     void Thirsty(int (*terrain)[MAX_COLS]);
     void Dead(int (*terrain)[MAX_COLS]);
 private:

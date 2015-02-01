@@ -26,7 +26,7 @@ enum TERRAIN
     FOOD = 6,
 };
 
-class AntScene : public cocos2d::Layer
+class AntScene : public cocos2d::LayerColor
 {
 public:
     AntScene();
@@ -41,4 +41,8 @@ public:
     
     CREATE_FUNC(AntScene);
 private:
+    cocos2d::Size visibleSize;
+    int cond;
+    int fieldSize;
+    int tileSize;
 };

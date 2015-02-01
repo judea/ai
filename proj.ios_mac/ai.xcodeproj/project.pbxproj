@@ -59,6 +59,8 @@
 		521A8E6519F0C34300D177D7 /* Default-736h@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 521A8E6319F0C34300D177D7 /* Default-736h@3x.png */; };
 		521A8EA919F11F5000D177D7 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 521A8EA819F11F5000D177D7 /* fonts */; };
 		521A8EAA19F11F5000D177D7 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 521A8EA819F11F5000D177D7 /* fonts */; };
+		892082821A7E0EC20091175B /* BlackAnt.png in Resources */ = {isa = PBXBuildFile; fileRef = 892082801A7E0EC20091175B /* BlackAnt.png */; };
+		892082831A7E0EC20091175B /* RedAnt.png in Resources */ = {isa = PBXBuildFile; fileRef = 892082811A7E0EC20091175B /* RedAnt.png */; };
 		894187221A73CFD3009606D0 /* AIEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 894187201A73CFD3009606D0 /* AIEntity.cpp */; };
 		8960A0011A6136320027E655 /* AntScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 89609FFF1A6136320027E655 /* AntScene.cpp */; };
 		896838A91A5825CF00B9ADCA /* Chapter01Scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 896838A71A5825CF00B9ADCA /* Chapter01Scene.cpp */; };
@@ -153,6 +155,8 @@
 		521A8E6219F0C34300D177D7 /* Default-667h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-667h@2x.png"; sourceTree = "<group>"; };
 		521A8E6319F0C34300D177D7 /* Default-736h@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-736h@3x.png"; sourceTree = "<group>"; };
 		521A8EA819F11F5000D177D7 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
+		892082801A7E0EC20091175B /* BlackAnt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BlackAnt.png; sourceTree = "<group>"; };
+		892082811A7E0EC20091175B /* RedAnt.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = RedAnt.png; sourceTree = "<group>"; };
 		894187201A73CFD3009606D0 /* AIEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AIEntity.cpp; path = Ant/AIEntity.cpp; sourceTree = "<group>"; };
 		894187211A73CFD3009606D0 /* AIEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AIEntity.h; path = Ant/AIEntity.h; sourceTree = "<group>"; };
 		89609FFF1A6136320027E655 /* AntScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AntScene.cpp; path = Ant/AntScene.cpp; sourceTree = "<group>"; };
@@ -283,6 +287,8 @@
 		46880B7519C43A67006E1F66 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				892082801A7E0EC20091175B /* BlackAnt.png */,
+				892082811A7E0EC20091175B /* RedAnt.png */,
 				521A8EA819F11F5000D177D7 /* fonts */,
 				3EACC98E19EE6D4300EB3C5E /* res */,
 				46880B7619C43A67006E1F66 /* CloseNormal.png */,
@@ -500,6 +506,7 @@
 				5087E78017EB970100C73F5D /* Icon-114.png in Resources */,
 				50EF62A217ECD613001EB2F8 /* Icon-29.png in Resources */,
 				50EF629617ECD46A001EB2F8 /* Icon-40.png in Resources */,
+				892082821A7E0EC20091175B /* BlackAnt.png in Resources */,
 				5087E78217EB970100C73F5D /* Icon-144.png in Resources */,
 				3EACC98F19EE6D4300EB3C5E /* res in Resources */,
 				50EF629817ECD46A001EB2F8 /* Icon-80.png in Resources */,
@@ -507,6 +514,7 @@
 				5087E77E17EB970100C73F5D /* Default.png in Resources */,
 				521A8E6419F0C34300D177D7 /* Default-667h@2x.png in Resources */,
 				46880B7B19C43A67006E1F66 /* CloseNormal.png in Resources */,
+				892082831A7E0EC20091175B /* RedAnt.png in Resources */,
 				50EF629717ECD46A001EB2F8 /* Icon-58.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

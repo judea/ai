@@ -6,6 +6,13 @@
 
 USING_NS_CC;
 
+// ゲーム状態
+enum COND
+{
+    INIT,
+    MAIN,
+    END,
+};
 
 // タグ
 enum TAG
@@ -14,15 +21,24 @@ enum TAG
     
 };
 
+// Z座標
+enum ZPOS
+{
+    TILE,
+    ANT,
+};
+
 // 設定
 static const int MAX_WATER = 15;
 static const int MAX_POISON = 8;
 static const int MAX_FOOD = 20;
 
 // 蟻
-AIEntity entityList[MAX_ENTITIES];
+AIEntity *entityList[MAX_ENTITIES];
 
 int terrain[MAX_ROWS][MAX_COLS];
+Sprite *tile[MAX_ROWS][MAX_COLS];
+Sprite *ant[MAX_ENTITIES];
 
 AntScene::AntScene()
 {
@@ -58,10 +74,20 @@ AntScene::AntScene()
             log("terrain[%d][%d] : %d", i, j, terrain[i][j]);
         }
     }
+    
+    
+    // 蟻
+    entityList[0] = new AIEntity(AIEntity::RED_ANT, AIEntity::FORAGE, 5, 5);
+    entityList[1] = new AIEntity(AIEntity::RED_ANT, AIEntity::FORAGE, 8, 5);
+    entityList[2] = new AIEntity(AIEntity::BLACK_ANT, AIEntity::FORAGE, 5, 36);
+    entityList[3] = new AIEntity(AIEntity::BLACK_ANT, AIEntity::FORAGE, 8, 36);
 }
 
 AntScene::~AntScene()
 {
+    for (int i = 0; i < MAX_ENTITIES; i++) {
+        delete(entityList[i]);
+    }
 }
 
 Scene* AntScene::createScene()
@@ -69,7 +95,6 @@ Scene* AntScene::createScene()
     auto scene = Scene::create();
     
     auto layer = AntScene::create();
-    
     scene->addChild(layer);
     
     return scene;
@@ -77,14 +102,19 @@ Scene* AntScene::createScene()
 
 bool AntScene::init()
 {
-    if ( !Layer::init() )
+    if ( !LayerColor::initWithColor(Color4B::GRAY) )
     {
         return false;
     }
     
-    Size visibleSize = Director::getInstance()->getVisibleSize();
+    visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
     
+    cond = COND::INIT;
+    fieldSize = 0;
+    tileSize = 0;
+
     // Menu
     {
         // Back
@@ -94,7 +124,7 @@ bool AntScene::init()
         
         // Menu
         auto menu = Menu::create(backItem, nullptr);
-        menu->setPosition(visibleSize.width*0.1, visibleSize.height*0.9);
+        menu->setPosition(visibleSize.width*0.8, visibleSize.height*0.9);
         menu->alignItemsVertically();
         this->addChild(menu);
     }
@@ -104,46 +134,53 @@ bool AntScene::init()
     
     // タイル作成
     {
-        int TILE_WIDTH = 15;
-        int TILE_HEIGH = 15;
+        // フィールド
+        if (visibleSize.width > visibleSize.height) {
+            fieldSize = visibleSize.height;
+        } else {
+            fieldSize = visibleSize.width;
+        }
+        
+        // タイル
+        if (MAX_ROWS > MAX_COLS) {
+            tileSize = fieldSize / MAX_ROWS;
+        } else {
+            tileSize = fieldSize / MAX_COLS;
+        }
+        
         for (int i = 0; i < MAX_ROWS; i++) {
             for (int j = 0; j < MAX_COLS; j++)
             {
-                auto tile = Sprite::create();
-                tile->setTextureRect(Rect(0, 0, TILE_WIDTH, TILE_WIDTH));
-                switch (terrain[i][j]) {
-                    case TERRAIN::GROUND:
-                        tile->setColor(Color3B::WHITE);
-                        break;
-                    case TERRAIN::WATER:
-                        tile->setColor(Color3B::BLUE);
-                        break;
-                    case TERRAIN::BLACK_HOME:
-                        tile->setColor(Color3B::BLACK);
-                        break;
-                    case TERRAIN::RED_HOME:
-                        tile->setColor(Color3B::RED);
-                        break;
-                    case TERRAIN::POISON:
-                        tile->setColor(Color3B::MAGENTA);
-                        break;
-                    case TERRAIN::FOOD:
-                        tile->setColor(Color3B::YELLOW);
-                        break;
-                    default:
-                        break;
-                }
-                tile->setPosition(Vec2(TILE_WIDTH * (j + 1), visibleSize.height - TILE_HEIGH * (i + 1)));
-                this->addChild(tile);
+                tile[i][j] = Sprite::create();
+                tile[i][j]->setTextureRect(Rect(0, 0, tileSize, tileSize));
+                tile[i][j]->setColor(Color3B::WHITE);
+                tile[i][j]->setAnchorPoint(Vec2(0, 1));
+                tile[i][j]->setPosition(Vec2(tileSize * (j + 1), visibleSize.height - tileSize * (i + 1)));
+                this->addChild(tile[i][j], TILE);
             }
         }
     }
 
-    // 蟻
-    entityList[0] = *new AIEntity(AIEntity::RED_ANT, AIEntity::FORAGE, 5, 5);
-    entityList[1] = *new AIEntity(AIEntity::RED_ANT, AIEntity::FORAGE, 8, 5);
-    entityList[2] = *new AIEntity(AIEntity::BLACK_ANT, AIEntity::FORAGE, 5, 36);
-    entityList[3] = *new AIEntity(AIEntity::BLACK_ANT, AIEntity::FORAGE, 8, 36);
+    for (int i = 0; i < MAX_ENTITIES; i++) {
+        ant[i] = nullptr;
+        switch(entityList[i]->getType()) {
+            case AIEntity::TYPE::BLACK_ANT:
+                ant[i] = Sprite::create("RedAnt.png");
+                break;
+            case AIEntity::TYPE::RED_ANT:
+                ant[i] = Sprite::create("BlackAnt.png");
+                break;
+            default:
+                break;
+        }
+        if(ant[i] == nullptr) continue;
+        
+        auto imgSize = ant[i]->getContentSize();
+        auto imgScale = tileSize / imgSize.width;
+        ant[i]->setScale(imgScale);
+        this->addChild(ant[i], ANT);
+    }
+    
     
     this->scheduleUpdate();
     
@@ -152,25 +189,103 @@ bool AntScene::init()
 
 void AntScene::update(float dt)
 {
-    for (int i = 0; i < MAX_ENTITIES; i++) {
-        switch (entityList[i].getState())
+    switch (cond) {
+        case COND::INIT:
         {
-            case AIEntity::FORAGE:
-                entityList[i].Forage(terrain);
-                break;
-            case AIEntity::GO_HOME:
-                entityList[i].GoHome(terrain, entityList);
-                break;
-            case AIEntity::THIRSTY:
-                entityList[i].Thirsty(terrain);
-                break;
-            case AIEntity::DEAD:
-                entityList[i].Dead(terrain);
-                break;
-            default:
-                break;
+            cond = COND::MAIN;
+            break;
         }
+        case COND::MAIN:
+        {
+            for (int i = 0; i < MAX_ENTITIES; i++) {
+                switch (entityList[i]->getState())
+                {
+                    case AIEntity::FORAGE:
+                        entityList[i]->Forage(terrain);
+                        break;
+                    case AIEntity::GO_HOME:
+                        entityList[i]->GoHome(terrain, entityList);
+                        break;
+                    case AIEntity::THIRSTY:
+                        entityList[i]->Thirsty(terrain);
+                        break;
+                    case AIEntity::DEAD:
+                        entityList[i]->Dead(terrain);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            
+            for (int i = 0; i < MAX_ROWS; i++) {
+                for (int j = 0; j < MAX_COLS; j++)
+                {
+                    switch (terrain[i][j]) {
+                        case TERRAIN::GROUND:
+                            tile[i][j]->setColor(Color3B::WHITE);
+                            break;
+                        case TERRAIN::WATER:
+                            tile[i][j]->setColor(Color3B::BLUE);
+                            break;
+                        case TERRAIN::BLACK_HOME:
+                            tile[i][j]->setColor(Color3B::BLACK);
+                            break;
+                        case TERRAIN::RED_HOME:
+                            tile[i][j]->setColor(Color3B::RED);
+                            break;
+                        case TERRAIN::POISON:
+                            tile[i][j]->setColor(Color3B::MAGENTA);
+                            break;
+                        case TERRAIN::FOOD:
+                            tile[i][j]->setColor(Color3B::YELLOW);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            
+            for (int i = 0; i < MAX_ENTITIES; i++) {
+                auto entity = entityList[i];
+
+                log("ant[%d](%d) : row[%d], col[%d]", i, entity->getState(), entity->getRow(), entity->getCol());
+                
+                float x = tileSize * (entity->getCol() + 1);
+                float y = visibleSize.height - tileSize * (entity->getRow() + 1);
+                
+                ant[i]->setPosition(x, y);
+//                if (entity.getType() == AIEntity::BLACK_ANT) {
+//                    tile[entity.getRow()][entity.getCol()]->setColor(Color3B::BLACK);
+//                } else {
+//                    tile[entity.getRow()][entity.getCol()]->setColor(Color3B::RED);
+//                }
+            }
+            
+            // 生存確認
+            int deadNum = 0;
+            for (int i = 0; i < MAX_ENTITIES; i++) {
+                auto entity = entityList[i];
+                if (entity->getState() == AIEntity::STATE::DEAD) {
+                    deadNum++;
+                }
+            }
+            
+            if (deadNum >= MAX_ENTITIES) {
+                cond = COND::END;
+            }
+            break;
+        }
+        case COND::END:
+        {
+            log("END");
+            break;
+        }
+        default:
+            break;
     }
+    
+    
+    
 }
 
 

@@ -80,7 +80,7 @@ void AIEntity::Forage(int (*terrain)[MAX_COLS])
     }
 }
 
-void AIEntity::GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList)
+void AIEntity::GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList[])
 {
     int rowMove;
     int colMove;
@@ -148,8 +148,8 @@ void AIEntity::GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList)
         col = newCol;
         state = STATE::THIRSTY;
         for (index = 0; index < MAX_ENTITIES; index++) {
-            if (entityList[index].getType() == 0) {
-                entityList[index] = *new AIEntity(type, STATE::FORAGE, homeRow, homeCol);
+            if (entityList[index]->getType() == 0) {
+                entityList[index] = new AIEntity(type, STATE::FORAGE, homeRow, homeCol);
                 break;
             }
         }
