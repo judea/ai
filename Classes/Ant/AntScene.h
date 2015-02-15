@@ -7,10 +7,10 @@ static const int MAX_ROWS = 32;
 static const int MAX_COLS = 42;
 
 // ゲーム環境初期化
-static const int RED_HOME_ROW = 5;
+static const int RED_HOME_ROW = MAX_ROWS / 2;
 static const int RED_HOME_COL = 5;
 
-static const int BLACK_HOME_ROW = 5;
+static const int BLACK_HOME_ROW = MAX_ROWS / 2;
 static const int BLACK_HOME_COL = 36;
 
 static const int MAX_ENTITIES = 50;
@@ -46,5 +46,10 @@ private:
     int fieldSize;
     int tileSize;
     
+    cocos2d::Label *redAntLabel;
+    cocos2d::Label *blackAntLabel;
+    
     void setTerrain(TERRAIN kind, int size);
+    
+    int countAnt();
 };

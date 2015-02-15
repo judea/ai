@@ -19,7 +19,6 @@ enum COND
 enum TAG
 {
     TAG_BACK,
-    
 };
 
 // Z座標
@@ -33,6 +32,17 @@ enum ZPOS
 static const int MAX_WATER = 15;
 static const int MAX_POISON = 8;
 static const int MAX_FOOD = 20;
+
+// 説明用ラベル
+static const float POS_DESC_LABEL_X = 800;
+static const float POS_DESC_LABEL_Y = 600;
+static const float POS_DESC_LABEL_Y_SPACE = -20;
+
+//　蟻用ラベル
+static const float POS_ANT_LABEL_X = 50;
+static const float POS_ANT_LABEL_Y = 150;
+static const float POS_ANT_LABEL_Y_SPACE = -30;
+
 
 // 蟻
 //AIEntity *entityList[MAX_ENTITIES];
@@ -120,8 +130,51 @@ bool AntScene::init()
         this->addChild(menu);
     }
     
+    // ラベル
+    {
+        auto groundLabel = Label::createWithTTF("GROUND", SYSTEM_FONT, FONT_SIZE);
+        groundLabel->setTextColor(Color4B::WHITE);
+        groundLabel->setPosition(POS_DESC_LABEL_X, POS_DESC_LABEL_Y + POS_DESC_LABEL_Y_SPACE * 0);
+        this->addChild(groundLabel);
+        
+        auto redHomeLabel = Label::createWithTTF("RED_HOME", SYSTEM_FONT, FONT_SIZE);
+        redHomeLabel->setTextColor(Color4B::RED);
+        redHomeLabel->setPosition(POS_DESC_LABEL_X, POS_DESC_LABEL_Y + POS_DESC_LABEL_Y_SPACE * 1);
+        this->addChild(redHomeLabel);
+        
+        auto blackHomeLabel = Label::createWithTTF("BLACK_HOME", SYSTEM_FONT, FONT_SIZE);
+        blackHomeLabel->setTextColor(Color4B::BLACK);
+        blackHomeLabel->setPosition(POS_DESC_LABEL_X, POS_DESC_LABEL_Y + POS_DESC_LABEL_Y_SPACE * 2);
+        this->addChild(blackHomeLabel);
+
+        auto waterLabel = Label::createWithTTF("WATER", SYSTEM_FONT, FONT_SIZE);
+        waterLabel->setTextColor(Color4B::BLUE);
+        waterLabel->setPosition(POS_DESC_LABEL_X, POS_DESC_LABEL_Y + POS_DESC_LABEL_Y_SPACE * 3);
+        this->addChild(waterLabel);
+
+        auto poisonLabel = Label::createWithTTF("POISON", SYSTEM_FONT, FONT_SIZE);
+        poisonLabel->setTextColor(Color4B::MAGENTA);
+        poisonLabel->setPosition(POS_DESC_LABEL_X, POS_DESC_LABEL_Y + POS_DESC_LABEL_Y_SPACE * 4);
+        this->addChild(poisonLabel);
+
+        auto foodLabel = Label::createWithTTF("FOOD", SYSTEM_FONT, FONT_SIZE);
+        foodLabel->setTextColor(Color4B::YELLOW);
+        foodLabel->setPosition(POS_DESC_LABEL_X, POS_DESC_LABEL_Y + POS_DESC_LABEL_Y_SPACE * 5);
+        this->addChild(foodLabel);
+    }
+    
 //    log("random[%f]", random(0.0f, visibleSize.width));
     
+    // 蟻表示用ラベル
+    redAntLabel = Label::createWithTTF("0", SYSTEM_FONT, FONT_SIZE);
+    redAntLabel->setTextColor(Color4B::RED);
+    redAntLabel->setPosition(POS_ANT_LABEL_X, POS_ANT_LABEL_Y + POS_ANT_LABEL_Y_SPACE * 0);
+    this->addChild(redAntLabel);
+    
+    blackAntLabel = Label::createWithTTF("0", SYSTEM_FONT, FONT_SIZE);
+    blackAntLabel->setTextColor(Color4B::BLACK);
+    blackAntLabel->setPosition(POS_ANT_LABEL_X, POS_ANT_LABEL_Y + POS_ANT_LABEL_Y_SPACE * 1);
+    this->addChild(blackAntLabel);
     
     // タイル作成
     {
@@ -157,7 +210,7 @@ bool AntScene::init()
     entityList.push_back(new AIEntity(this, AIEntity::RED_ANT, AIEntity::FORAGE, 8, 5, tileSize));
     entityList.push_back(new AIEntity(this, AIEntity::BLACK_ANT, AIEntity::FORAGE, 5, 36, tileSize));
     entityList.push_back(new AIEntity(this, AIEntity::BLACK_ANT, AIEntity::FORAGE, 8, 36, tileSize));
-
+    
     this->scheduleUpdate();
     
     return true;
@@ -185,7 +238,6 @@ void AntScene::update(float dt)
                         if (entity->isHome()) {
                             entityList.push_back(new AIEntity(this, entity->getType(), AIEntity::STATE::FORAGE, entity->getRow(), entity->getCol(), tileSize));
                         }
-
                         break;
                     case AIEntity::THIRSTY:
                         entity->thirsty(terrain);
@@ -209,14 +261,14 @@ void AntScene::update(float dt)
                         case TERRAIN::GROUND:
                             tile[i][j]->setColor(Color3B::WHITE);
                             break;
-                        case TERRAIN::WATER:
-                            tile[i][j]->setColor(Color3B::BLUE);
+                        case TERRAIN::RED_HOME:
+                            tile[i][j]->setColor(Color3B::RED);
                             break;
                         case TERRAIN::BLACK_HOME:
                             tile[i][j]->setColor(Color3B::BLACK);
                             break;
-                        case TERRAIN::RED_HOME:
-                            tile[i][j]->setColor(Color3B::RED);
+                        case TERRAIN::WATER:
+                            tile[i][j]->setColor(Color3B::BLUE);
                             break;
                         case TERRAIN::POISON:
                             tile[i][j]->setColor(Color3B::MAGENTA);
@@ -243,15 +295,7 @@ void AntScene::update(float dt)
             }
             
             // 生存確認
-            int deadNum = 0;
-            for (std::list<AIEntity*>::iterator it = entityList.begin(); it != entityList.end(); it++) {
-                auto entity = *it;
-                if (entity->getState() == AIEntity::STATE::DEAD) {
-                    deadNum++;
-                }
-            }
-            
-            if (deadNum >= MAX_ENTITIES) {
+            if (countAnt() == 0) {
                 cond = COND::END;
             }
             break;
@@ -302,3 +346,22 @@ void AntScene::setTerrain(TERRAIN kind, int size)
     }
 }
 
+int AntScene::countAnt()
+{
+    int redAntNum = 0;
+    int blackAntNum = 0;
+    
+    for (std::list<AIEntity*>::iterator it = entityList.begin(); it != entityList.end(); it++) {
+        auto entity = *it;
+        if (entity->getType() == AIEntity::RED_ANT) {
+            redAntNum++;
+        } else {
+            blackAntNum++;
+        }
+    }
+    
+    redAntLabel->setString(StringUtils::format("%d", redAntNum));
+    blackAntLabel->setString(StringUtils::format("%d", blackAntNum));
+    
+    return redAntNum + blackAntNum;
+}

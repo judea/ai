@@ -7,7 +7,7 @@ USING_NS_CC;
 
 enum {
     TAG_CHAPTER01,
-    TAG_CHAPTER02,
+    TAG_ANT,
 };
 
 Scene* MainScene::createScene()
@@ -34,17 +34,18 @@ bool MainScene::init()
     // Chapter
     {
         // Chapter01
-        auto chapter01Label = Label::createWithTTF("Chapter01", SYSTEM_FONT, FONT_SIZE);
-        auto chapter01Item = MenuItemLabel::create(chapter01Label, CC_CALLBACK_1(MainScene::menuCallback, this));
-        chapter01Item->setTag(TAG_CHAPTER01);
+//        auto chapter01Label = Label::createWithTTF("Chapter01", SYSTEM_FONT, FONT_SIZE);
+//        auto chapter01Item = MenuItemLabel::create(chapter01Label, CC_CALLBACK_1(MainScene::menuCallback, this));
+//        chapter01Item->setTag(TAG_CHAPTER01);
         
-        // Chapter02
-        auto chapter02Label = Label::createWithTTF("Ant", SYSTEM_FONT, FONT_SIZE);
-        auto chapter02Item = MenuItemLabel::create(chapter02Label, CC_CALLBACK_1(MainScene::menuCallback, this));
-        chapter02Item->setTag(TAG_CHAPTER02);
+        // Ant
+        auto antLabel = Label::createWithTTF("Ant", SYSTEM_FONT, FONT_SIZE);
+        auto antItem = MenuItemLabel::create(antLabel, CC_CALLBACK_1(MainScene::menuCallback, this));
+        antItem->setTag(TAG_ANT);
         
         // Menu
-        auto menu = Menu::create(chapter01Item, chapter02Item, nullptr);
+//        auto menu = Menu::create(chapter01Item, antItem, nullptr);
+        auto menu = Menu::create(antItem, nullptr);
         menu->setPosition(visibleSize.width/2, visibleSize.height/2);
         menu->alignItemsVertically();
         this->addChild(menu);
@@ -91,10 +92,8 @@ void MainScene::menuCallback(Ref* pSender)
     
     switch (id) {
         case TAG_CHAPTER01:
-            log("chapter01");
             Director::getInstance()->replaceScene(TransitionFade::create(1.0f, Chapter01Scene::createScene(), Color3B::WHITE));            break;
-        case TAG_CHAPTER02:
-            log("chapter02");
+        case TAG_ANT:
             Director::getInstance()->replaceScene(TransitionFade::create(1.0f, AntScene::createScene(), Color3B::WHITE));            break;
         default:
             break;
