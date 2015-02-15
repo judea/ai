@@ -6,6 +6,7 @@ class AIEntity
 public:
     enum TYPE
     {
+        NONE = 0,
         RED_ANT = 1,
         BLACK_ANT = 2,
     };
@@ -19,16 +20,19 @@ public:
     };
 
     AIEntity();
-    AIEntity(int type, int state, int row, int col);
+    AIEntity(cocos2d::Node *parent, int type, int state, int row, int col, int tileSize);
     ~AIEntity();
     
-    void Forage(int (*terrain)[MAX_COLS]);
-    void GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList[]);
-    void Thirsty(int (*terrain)[MAX_COLS]);
-    void Dead(int (*terrain)[MAX_COLS]);
+    void forage(int (*terrain)[MAX_COLS]);
+    void goHome(int (*terrain)[MAX_COLS], std::list<AIEntity*> entityList);
+    void thirsty(int (*terrain)[MAX_COLS]);
+    void dead(int (*terrain)[MAX_COLS]);
+    
+    bool isHome();
 private:
     CC_SYNTHESIZE(int, type, Type);
     CC_SYNTHESIZE(int, state, State);
     CC_SYNTHESIZE(int, row, Row);
     CC_SYNTHESIZE(int, col, Col);
+    CC_SYNTHESIZE(cocos2d::Sprite*, image, Image);
 };

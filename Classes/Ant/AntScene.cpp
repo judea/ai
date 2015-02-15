@@ -10,6 +10,7 @@ USING_NS_CC;
 enum COND
 {
     INIT,
+    READY,
     MAIN,
     END,
 };
@@ -34,17 +35,17 @@ static const int MAX_POISON = 8;
 static const int MAX_FOOD = 20;
 
 // 蟻
-AIEntity *entityList[MAX_ENTITIES];
+//AIEntity *entityList[MAX_ENTITIES];
+std::list<AIEntity*> entityList;
 
 int terrain[MAX_ROWS][MAX_COLS];
 Sprite *tile[MAX_ROWS][MAX_COLS];
-Sprite *ant[MAX_ENTITIES];
 
 AntScene::AntScene()
 {
-    std::random_device rd;
-    std::mt19937 mt(rd());
+    // 地形設定
     
+    // 地面
     for (int i = 0; i < MAX_ROWS; i++) {
         for (int j = 0; j < MAX_COLS; j++)
         {
@@ -52,41 +53,32 @@ AntScene::AntScene()
         }
     }
     
+    //　蟻拠点設定
     terrain[RED_HOME_ROW][RED_HOME_COL] = TERRAIN::RED_HOME;
     terrain[BLACK_HOME_ROW][BLACK_HOME_COL] = TERRAIN::BLACK_HOME;
     
-    std::uniform_int_distribution<int> rndRow(2, MAX_ROWS);
-    std::uniform_int_distribution<int> rndCol(1, MAX_COLS);
+    // 水
+    setTerrain(TERRAIN::WATER, MAX_WATER);
+
+    // 毒
+    setTerrain(TERRAIN::POISON, MAX_POISON);
     
-    for (int i = 0; i < MAX_WATER; i++) {
-        terrain[rndRow(mt) - 3][rndCol(mt) - 1] = TERRAIN::WATER;
-    }
-    for (int i = 0; i < MAX_POISON; i++) {
-        terrain[rndRow(mt) - 3][rndCol(mt) - 1] = TERRAIN::POISON;
-    }
-    for (int i = 0; i < MAX_FOOD; i++) {
-        terrain[rndRow(mt) - 3][rndCol(mt) - 1] = TERRAIN::FOOD;
-    }
-    
-    for (int i = 0; i < MAX_ROWS; i++) {
-        for (int j = 0; j < MAX_COLS; j++)
-        {
-            log("terrain[%d][%d] : %d", i, j, terrain[i][j]);
-        }
-    }
-    
-    
-    // 蟻
-    entityList[0] = new AIEntity(AIEntity::RED_ANT, AIEntity::FORAGE, 5, 5);
-    entityList[1] = new AIEntity(AIEntity::RED_ANT, AIEntity::FORAGE, 8, 5);
-    entityList[2] = new AIEntity(AIEntity::BLACK_ANT, AIEntity::FORAGE, 5, 36);
-    entityList[3] = new AIEntity(AIEntity::BLACK_ANT, AIEntity::FORAGE, 8, 36);
+    // 食料
+    setTerrain(TERRAIN::FOOD, MAX_FOOD);
+
+    // 地形データ確認(デバッグ用)
+//    for (int i = 0; i < MAX_ROWS; i++) {
+//        for (int j = 0; j < MAX_COLS; j++)
+//        {
+//            log("terrain[%d][%d] : %d", i, j, terrain[i][j]);
+//        }
+//    }
 }
 
 AntScene::~AntScene()
 {
-    for (int i = 0; i < MAX_ENTITIES; i++) {
-        delete(entityList[i]);
+    for (std::list<AIEntity*>::iterator it = entityList.begin(); it != entityList.end(); it++) {
+        CC_SAFE_DELETE(*it);
     }
 }
 
@@ -109,7 +101,6 @@ bool AntScene::init()
     
     visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
-
     
     cond = COND::INIT;
     fieldSize = 0;
@@ -129,7 +120,7 @@ bool AntScene::init()
         this->addChild(menu);
     }
     
-    log("random[%f]", random(0.0f, visibleSize.width));
+//    log("random[%f]", random(0.0f, visibleSize.width));
     
     
     // タイル作成
@@ -160,28 +151,13 @@ bool AntScene::init()
             }
         }
     }
+    
+    // 蟻
+    entityList.push_back(new AIEntity(this, AIEntity::RED_ANT, AIEntity::FORAGE, 5, 5, tileSize));
+    entityList.push_back(new AIEntity(this, AIEntity::RED_ANT, AIEntity::FORAGE, 8, 5, tileSize));
+    entityList.push_back(new AIEntity(this, AIEntity::BLACK_ANT, AIEntity::FORAGE, 5, 36, tileSize));
+    entityList.push_back(new AIEntity(this, AIEntity::BLACK_ANT, AIEntity::FORAGE, 8, 36, tileSize));
 
-    for (int i = 0; i < MAX_ENTITIES; i++) {
-        ant[i] = nullptr;
-        switch(entityList[i]->getType()) {
-            case AIEntity::TYPE::BLACK_ANT:
-                ant[i] = Sprite::create("RedAnt.png");
-                break;
-            case AIEntity::TYPE::RED_ANT:
-                ant[i] = Sprite::create("BlackAnt.png");
-                break;
-            default:
-                break;
-        }
-        if(ant[i] == nullptr) continue;
-        
-        auto imgSize = ant[i]->getContentSize();
-        auto imgScale = tileSize / imgSize.width;
-        ant[i]->setScale(imgScale);
-        this->addChild(ant[i], ANT);
-    }
-    
-    
     this->scheduleUpdate();
     
     return true;
@@ -197,24 +173,33 @@ void AntScene::update(float dt)
         }
         case COND::MAIN:
         {
-            for (int i = 0; i < MAX_ENTITIES; i++) {
-                switch (entityList[i]->getState())
+            for (std::list<AIEntity*>::iterator it = entityList.begin(); it != entityList.end();) {
+                auto entity = *it;
+                switch (entity->getState())
                 {
                     case AIEntity::FORAGE:
-                        entityList[i]->Forage(terrain);
+                        entity->forage(terrain);
                         break;
                     case AIEntity::GO_HOME:
-                        entityList[i]->GoHome(terrain, entityList);
+                        entity->goHome(terrain, entityList);
+                        if (entity->isHome()) {
+                            entityList.push_back(new AIEntity(this, entity->getType(), AIEntity::STATE::FORAGE, entity->getRow(), entity->getCol(), tileSize));
+                        }
+
                         break;
                     case AIEntity::THIRSTY:
-                        entityList[i]->Thirsty(terrain);
+                        entity->thirsty(terrain);
                         break;
                     case AIEntity::DEAD:
-                        entityList[i]->Dead(terrain);
+                        entity->dead(terrain);
+                        it = entityList.erase(it);
+                        CC_SAFE_DELETE(entity);
+                        continue;
                         break;
                     default:
                         break;
                 }
+                it++;
             }
             
             for (int i = 0; i < MAX_ROWS; i++) {
@@ -245,26 +230,22 @@ void AntScene::update(float dt)
                 }
             }
             
-            for (int i = 0; i < MAX_ENTITIES; i++) {
-                auto entity = entityList[i];
+            // 蟻移動
+            for (std::list<AIEntity*>::iterator it = entityList.begin(); it != entityList.end(); it++) {
+                auto entity = *it;
 
-                log("ant[%d](%d) : row[%d], col[%d]", i, entity->getState(), entity->getRow(), entity->getCol());
+//                log("ant(%d) : row[%d], col[%d]", entity->getState(), entity->getRow(), entity->getCol());
                 
                 float x = tileSize * (entity->getCol() + 1);
                 float y = visibleSize.height - tileSize * (entity->getRow() + 1);
                 
-                ant[i]->setPosition(x, y);
-//                if (entity.getType() == AIEntity::BLACK_ANT) {
-//                    tile[entity.getRow()][entity.getCol()]->setColor(Color3B::BLACK);
-//                } else {
-//                    tile[entity.getRow()][entity.getCol()]->setColor(Color3B::RED);
-//                }
+                entity->getImage()->setPosition(x, y);
             }
             
             // 生存確認
             int deadNum = 0;
-            for (int i = 0; i < MAX_ENTITIES; i++) {
-                auto entity = entityList[i];
+            for (std::list<AIEntity*>::iterator it = entityList.begin(); it != entityList.end(); it++) {
+                auto entity = *it;
                 if (entity->getState() == AIEntity::STATE::DEAD) {
                     deadNum++;
                 }
@@ -297,10 +278,27 @@ void AntScene::menuCallback(Ref* pSender)
     
     switch (id) {
         case TAG_BACK:
-            log("back");
             Director::getInstance()->replaceScene(TransitionFade::create(1.0f, MainScene::createScene(), Color3B::WHITE));            break;
         default:
             break;
+    }
+}
+
+void AntScene::setTerrain(TERRAIN kind, int size)
+{
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> rndRow(2, MAX_ROWS);
+    std::uniform_int_distribution<int> rndCol(1, MAX_COLS);
+
+    for (int i = 0; i < size; i++) {
+        int row = rndRow(mt) - 3;
+        int col = rndCol(mt) - 1;
+        if (terrain[row][col] == TERRAIN::GROUND) {
+            terrain[row][col] = kind;
+        } else {
+            i--;
+        }
     }
 }
 

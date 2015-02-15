@@ -6,22 +6,35 @@ AIEntity::AIEntity()
     
 }
 
-AIEntity::AIEntity(int type, int state, int row, int col)
+AIEntity::AIEntity(cocos2d::Node *parent, int type, int state, int row, int col, int tileSize)
 {
     this->type = type;
     this->row = row;
     this->col = col;
     this->state = state;
+
+    // 蟻画像
+    if (type == TYPE::RED_ANT) {
+        this->image = cocos2d::Sprite::create("RedAnt.png");
+    } else {
+        this->image = cocos2d::Sprite::create("BlackAnt.png");
+    }
+    auto imgSize = this->image->getContentSize();
+    auto imgScale = tileSize / imgSize.width;
+    this->image->setScale(imgScale);
+
+    parent->addChild(this->image);
 }
 
 
 
 AIEntity::~AIEntity()
 {
-    
+    cocos2d::Node *parent = this->image->getParent();
+    parent->removeChild(this->image);
 }
 
-void AIEntity::Forage(int (*terrain)[MAX_COLS])
+void AIEntity::forage(int (*terrain)[MAX_COLS])
 {
     int rowMove;
     int colMove;
@@ -80,7 +93,7 @@ void AIEntity::Forage(int (*terrain)[MAX_COLS])
     }
 }
 
-void AIEntity::GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList[])
+void AIEntity::goHome(int (*terrain)[MAX_COLS], std::list<AIEntity*> entityList)
 {
     int rowMove;
     int colMove;
@@ -88,7 +101,6 @@ void AIEntity::GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList[])
     int newCol;
     int homeRow;
     int homeCol;
-    int index;
     int poisonRow;
     int poisonCol;
     
@@ -143,20 +155,12 @@ void AIEntity::GoHome(int (*terrain)[MAX_COLS], AIEntity *entityList[])
         terrain[poisonRow][poisonCol] = TERRAIN::POISON;
     }
     
-    if ((newRow == homeRow) && (newCol == homeCol)) {
-        row = newRow;
-        col = newCol;
+    if (isHome()) {
         state = STATE::THIRSTY;
-        for (index = 0; index < MAX_ENTITIES; index++) {
-            if (entityList[index]->getType() == 0) {
-                entityList[index] = new AIEntity(type, STATE::FORAGE, homeRow, homeCol);
-                break;
-            }
-        }
     }
 }
 
-void AIEntity::Thirsty(int (*terrain)[MAX_COLS])
+void AIEntity::thirsty(int (*terrain)[MAX_COLS])
 {
     int rowMove;
     int colMove;
@@ -216,7 +220,29 @@ void AIEntity::Thirsty(int (*terrain)[MAX_COLS])
 
 }
 
-void AIEntity::Dead(int (*terrain)[MAX_COLS])
+void AIEntity::dead(int (*terrain)[MAX_COLS])
 {
     
+}
+
+bool AIEntity::isHome()
+{
+    bool result = false;
+    
+    int homeRow;
+    int homeCol;
+    
+    if (this->type == TYPE::RED_ANT) {
+        homeRow = RED_HOME_ROW;
+        homeCol = RED_HOME_COL;
+    } else {
+        homeRow = BLACK_HOME_ROW;
+        homeCol = BLACK_HOME_COL;
+    }
+    
+    if (this->row == homeRow && this->col == homeCol ) {
+        result = true;
+    }
+    
+    return result;
 }

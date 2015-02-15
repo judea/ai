@@ -13,7 +13,7 @@ static const int RED_HOME_COL = 5;
 static const int BLACK_HOME_ROW = 5;
 static const int BLACK_HOME_COL = 36;
 
-static const int MAX_ENTITIES = 4;
+static const int MAX_ENTITIES = 50;
 
 // 地形値
 enum TERRAIN
@@ -45,4 +45,6 @@ private:
     int cond;
     int fieldSize;
     int tileSize;
+    
+    void setTerrain(TERRAIN kind, int size);
 };
