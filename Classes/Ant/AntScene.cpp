@@ -206,6 +206,7 @@ bool AntScene::init()
     }
     
     // 蟻
+    entityList.clear();
     entityList.push_back(new AIEntity(this, AIEntity::RED_ANT, AIEntity::FORAGE, 5, 5, tileSize));
     entityList.push_back(new AIEntity(this, AIEntity::RED_ANT, AIEntity::FORAGE, 8, 5, tileSize));
     entityList.push_back(new AIEntity(this, AIEntity::BLACK_ANT, AIEntity::FORAGE, 5, 36, tileSize));
